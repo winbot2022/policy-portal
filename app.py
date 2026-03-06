@@ -586,7 +586,7 @@ else:
 
 for article in filtered:
     with st.container(border=True):
-if profile_preset != "使わない" and "profile_match_score" not in article:
+        if profile_preset != "使わない" and "profile_match_score" not in article:
             article["profile_match_score"], article["profile_match_label"] = score_profile_match(article, profile_preset)
         widths = [1, 1, 2, 2, 2] if profile_preset != "使わない" else [1, 1, 2, 3]
         meta_cols = st.columns(widths)
