@@ -370,18 +370,21 @@ def fetch_from_rss(source: Source, session: requests.Session, max_items: int = 2
     response = session.get(source.url, timeout=TIMEOUT)
     response.raise_for_status()
     feed = feedparser.parse(response.content)
+
     items: list[dict] = []
     for entry in feed.entries[:max_items]:
         url = getattr(entry, "link", "")
         title = clean_text(getattr(entry, "title", "無題"))
         summary = clean_text(getattr(entry, "summary", ""))
-        body = summary
-        if len(body) < 120 and url:
-            body = extract_article_body(url, session)
+
+        # ここを軽くする
+        body = summary if summary else title
+
         category = infer_category(title, body)
         summary_short, summary_three, summary_business = summarize_text(title, body)
         importance_score, importance_label = calculate_importance(title, body, category)
         content_hash = hashlib.sha256(f"{title}|{url}|{body}".encode("utf-8")).hexdigest()
+
         items.append(
             {
                 "source_key": source.key,
