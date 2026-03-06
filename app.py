@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 JST = timezone(timedelta(hours=9))
 DB_PATH = "portal_cache.db"
 USER_AGENT = "VictorConsultingPolicyPortalMVP/0.1 (+https://victorconsulting.jp/)"
-TIMEOUT = 20
+TIMEOUT = 60
 MAX_BODY_CHARS = 1800
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 
@@ -41,7 +41,7 @@ SOURCES = [
         key="meti",
         name="経済産業省",
         kind="rss",
-        url="https://www.meti.go.jp/rss/index.xml",
+        url="https://www.meti.go.jp/ml_index_release_atom.xml",
         enabled=True,
     ),
     Source(
@@ -63,7 +63,7 @@ SOURCES = [
         key="fsa",
         name="金融庁",
         kind="rss",
-        url="https://www.fsa.go.jp/news.rdf",
+        url="https://www.fsa.go.jp/fsaNewsListAll_rss2.xml",
         enabled=True,
     ),
     Source(
