@@ -229,8 +229,7 @@ def summarize_text_rule_based(title: str, body: str) -> tuple[str, str, str]:
     third = sentence_candidates[2] if len(sentence_candidates) > 2 else "期限・要件・対象範囲の確認が重要です。"
 
     short = clean_text(first)[:90]
-    three = "
-".join([f"・{clean_text(x)[:120]}" for x in [first, second, third]])
+    three = "\n".join([f"・{clean_text(x)[:120]}" for x in [first, second, third]])
     business = (
         f"{title}に関する公表です。"
         f" 自社への影響があるか、対象者・開始時期・締切・必要手続を原文で確認してください。"
