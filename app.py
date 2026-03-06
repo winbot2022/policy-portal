@@ -229,7 +229,8 @@ def summarize_text_rule_based(title: str, body: str) -> tuple[str, str, str]:
     third = sentence_candidates[2] if len(sentence_candidates) > 2 else "期限・要件・対象範囲の確認が重要です。"
 
     short = clean_text(first)[:90]
-    three = "\n".join([f"・{clean_text(x)[:120]}" for x in [first, second, third]])
+    three = "
+".join([f"・{clean_text(x)[:120]}" for x in [first, second, third]])
     business = (
         f"{title}に関する公表です。"
         f" 自社への影響があるか、対象者・開始時期・締切・必要手続を原文で確認してください。"
@@ -367,7 +368,9 @@ def extract_article_body(url: str, session: requests.Session) -> str:
 
 # ---------- Source adapters ----------
 def fetch_from_rss(source: Source, session: requests.Session, max_items: int = 20) -> list[dict]:
-    feed = feedparser.parse(source.url)
+    response = session.get(source.url, timeout=TIMEOUT)
+    response.raise_for_status()
+    feed = feedparser.parse(response.content)
     items: list[dict] = []
     for entry in feed.entries[:max_items]:
         url = getattr(entry, "link", "")
@@ -457,6 +460,7 @@ def refresh_sources(selected_sources: Iterable[str]) -> tuple[int, list[str]]:
     session = get_session()
     inserted = 0
     notes: list[str] = []
+    processed_sources = 0
     for source in SOURCES:
         if source.key not in selected_sources:
             continue
@@ -470,6 +474,8 @@ def refresh_sources(selected_sources: Iterable[str]) -> tuple[int, list[str]]:
                 items = fetch_from_nta_html(source, session)
             else:
                 items = []
+            processed_sources += 1
+            notes.append(f"{source.name}: {len(items)}件取得")
             for item in items:
                 upsert_article(item)
                 inserted += 1
@@ -477,6 +483,8 @@ def refresh_sources(selected_sources: Iterable[str]) -> tuple[int, list[str]]:
             notes.append(f"{source.name}: 取得失敗 - {exc}")
         if source.note:
             notes.append(f"{source.name}: {source.note}")
+    if processed_sources == 0:
+        notes.append("有効な取得対象が選択されていません。")
     return inserted, notes
 
 
@@ -505,6 +513,8 @@ with st.sidebar:
         st.success(f"更新完了: {inserted}件を処理しました。")
         for note in notes:
             st.info(note)
+        refreshed_count = len(load_articles(300))
+        st.caption(f"DB保存後の記事件数: {refreshed_count}件")
 
     st.markdown("---")
     st.markdown("**運用メモ**")
@@ -577,7 +587,7 @@ else:
 
 for article in filtered:
     with st.container(border=True):
-        if profile_preset != "使わない" and "profile_match_score" not in article:
+if profile_preset != "使わない" and "profile_match_score" not in article:
             article["profile_match_score"], article["profile_match_label"] = score_profile_match(article, profile_preset)
         widths = [1, 1, 2, 2, 2] if profile_preset != "使わない" else [1, 1, 2, 3]
         meta_cols = st.columns(widths)
@@ -604,3 +614,4 @@ st.markdown("---")
 st.caption(
     "免責: 本アプリは公的機関の公式サイトではありません。要約は試作版であり、必ず原文をご確認ください。"
 )
+
